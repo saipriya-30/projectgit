@@ -34,3 +34,5 @@ jobs:
          run: |
           echo "Build Triggered!"
           echo Successful
+       - uses: ./.github/workflows/blank.yml
+         name: simplejobadded
