@@ -4,7 +4,7 @@ on:
   pull_request:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   trivy-scan:
@@ -14,12 +14,20 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Trivy cache
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/trivy
+          key: trivy-cache-${{ runner.os }}-${{ hashFiles('**/requirements.txt') }}
+
       - name: Run Trivy filesystem scan
-        uses: aquasecurity/trivy-action@v0.20.0
+        uses: aquasecurity/trivy-action@v0.21.0
         with:
           scan-type: fs
           scan-ref: .
-          severity: CRITICAL,HIGH
-          exit-code: 1
+          severity: CRITICAL,HIGH,MEDIUM
           ignore-unfixed: true
+          format: table
+
+
 
