@@ -19,4 +19,4 @@ jobs:
         env:
           RENOVATE_PLATFORM: github
           RENOVATE_REPOSITORIES: saipriya-30/projectgit
-          LOG_LEVEL: debug
+          LOG_LEVEL: info
