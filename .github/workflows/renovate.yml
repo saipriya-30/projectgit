@@ -1,19 +1,18 @@
-name: Renovate
+name: Renovate (All Repositories - PAT)
 
 on:
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}   # Not using GITHUB_TOKEN
 
 jobs:
   renovate:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Run Renovate
+      - name: Run Renovate (autodiscover)
         uses: renovatebot/github-action@v40.1.12
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          autodiscover: true
+        env:
+          RENOVATE_EXTRA_FLAGS: "--autodiscover"
