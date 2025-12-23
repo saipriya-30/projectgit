@@ -16,3 +16,7 @@ jobs:
         uses: renovatebot/github-action@v40.1.12
         with:
           token: ${{ secrets.RENOVATE_TOKEN }}
+        env:
+          RENOVATE_PLATFORM: github
+          RENOVATE_REPOSITORIES: saipriya-30/projectgit
+          LOG_LEVEL: info
