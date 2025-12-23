@@ -1,0 +1,77 @@
+name: Create Repo using GitHub App (No PAT)
+
+on:
+  workflow_dispatch:
+    inputs:
+      repo_name:
+        description: "Repository name"
+        required: true
+
+permissions: {}   # No GITHUB_TOKEN permissions needed
+
+jobs:
+  create-repo:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      # ------------------------------------------------
+      # 1. Generate GitHub App JWT
+      # ------------------------------------------------
+      - name: Generate GitHub App JWT
+        id: jwt
+        run: |
+          HEADER='{"alg":"RS256","typ":"JWT"}'
+          NOW=$(date +%s)
+
+          PAYLOAD=$(jq -n \
+            --arg iat "$NOW" \
+            --arg exp "$((NOW+540))" \
+            --arg iss "${{ secrets.GH_APP_ID }}" \
+            '{iat:($iat|tonumber),exp:($exp|tonumber),iss:$iss}')
+
+          base64url() {
+            openssl base64 -A | tr '+/' '-_' | tr -d '='
+          }
+
+          JWT_HEADER=$(echo -n "$HEADER" | base64url)
+          JWT_PAYLOAD=$(echo -n "$PAYLOAD" | base64url)
+
+          SIGNATURE=$(printf "%s.%s" "$JWT_HEADER" "$JWT_PAYLOAD" \
+            | openssl dgst -sha256 -sign <(echo "${{ secrets.GH_APP_PRIVATE_KEY }}") \
+            | base64url)
+
+          echo "token=$JWT_HEADER.$JWT_PAYLOAD.$SIGNATURE" >> $GITHUB_OUTPUT
+
+      # ------------------------------------------------
+      # 2. Exchange JWT for installation token
+      # ------------------------------------------------
+      - name: Get installation access token
+        id: install
+        run: |
+          curl -s -X POST \
+            -H "Authorization: Bearer ${{ steps.jwt.outputs.token }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/app/installations/${{ secrets.GH_APP_INSTALLATION_ID }}/access_tokens \
+            | jq -r '.token' > gh_token.txt
+
+      # ------------------------------------------------
+      # 3. Create GitHub repository
+      # ------------------------------------------------
+      - name: Create repository
+        run: |
+          ORG="${{ github.repository_owner }}"
+          REPO="${{ inputs.repo_name }}"
+
+          curl -s -X POST \
+            -H "Authorization: Bearer $(cat gh_token.txt)" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/orgs/$ORG/repos \
+            -d "{
+              \"name\": \"$REPO\",
+              \"private\": true,
+              \"auto_init\": true,
+              \"description\": \"Created using GitHub App (no PAT, no GITHUB_TOKEN)\"
+            }"
