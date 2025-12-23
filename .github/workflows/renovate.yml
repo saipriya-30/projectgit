@@ -17,6 +17,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
         env:
-          RENOVATE_PLATFORM: github
-          RENOVATE_REPOSITORIES: saipriya-30/projectgit
           LOG_LEVEL: info
