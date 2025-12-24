@@ -4,7 +4,10 @@ on:
   push:
     branches: [ master ]
   pull_request:
-
+permissions:
+  contents: read
+  security-events: write
+  
 jobs:
   gitleaks:
     runs-on: ubuntu-latest
