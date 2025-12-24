@@ -1,13 +1,11 @@
 {
   "extends": ["config:recommended"],
-
+  "dependencyDashboard": true,
   "packageRules": [
     {
       "matchManagers": ["github-actions"],
       "enabled": true
     }
   ]
-  {
-  "dependencyDashboard": true
-  }
 }
+
